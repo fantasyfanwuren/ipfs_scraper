@@ -1,8 +1,8 @@
 use std::fs;
-use std::io;
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 
-pub fn get_link() -> Result<String, io::Error> {
+pub fn get_input() -> Result<(String, i32), Box<dyn std::error::Error>> {
     // 首先获取用户输入的网址
     println!("");
     println!("");
@@ -10,13 +10,26 @@ pub fn get_link() -> Result<String, io::Error> {
     println!("作者QQ:756423901");
     println!("");
     println!("");
+    // 获取根地址
     println!("请输入IPFS根地址:");
     let mut url = String::new();
     std::io::stdin().read_line(&mut url)?;
-    Ok(url)
+    // 获取线程数
+    let thread_num: i32 = loop {
+        let mut thread_num = String::new();
+        println!("请设置下载线程数:");
+        std::io::stdin().read_line(&mut thread_num)?;
+        match thread_num.trim().parse() {
+            Ok(num) => break num,
+            _ => (),
+        }
+    };
+
+    Ok((url, thread_num))
 }
-pub fn analysis(code: &str) -> Vec<&str> {
-    let mut file_names: Vec<&str> = vec![];
+
+pub fn analysis(code: &str) -> Vec<String> {
+    let mut file_names: Vec<String> = vec![];
     let mut code = &code[..];
     loop {
         if let Some(begin) = code.find("filename=") {
@@ -25,7 +38,7 @@ pub fn analysis(code: &str) -> Vec<&str> {
             break;
         }
         if let Some(begin) = code.find("\"") {
-            file_names.push(&code[9..begin]);
+            file_names.push((&code[9..begin]).to_string());
             //println!("{}{}", url, &code[9..begin]);
             code = &code[begin..]
         } else {
@@ -34,6 +47,7 @@ pub fn analysis(code: &str) -> Vec<&str> {
     }
     file_names
 }
+
 pub fn make_dir(hash: &str) -> Result<PathBuf, io::Error> {
     //创建文件夹
     let dir = std::env::current_dir().unwrap();
@@ -45,4 +59,30 @@ pub fn make_dir(hash: &str) -> Result<PathBuf, io::Error> {
     fs::create_dir(dir_path)?;
     println!("所有输出将保存在以下目录:{:?}", dir_path);
     Ok(dir)
+}
+pub fn download(url: &str, file_path: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let body = reqwest::blocking::get(url)?.bytes()?;
+    let mut file = match std::fs::File::create(file_path) {
+        Err(why) => panic!("couldn't create {}", why),
+        Ok(file) => file,
+    };
+    let content = body.bytes();
+    let data: std::result::Result<Vec<_>, _> = content.collect();
+    file.write_all(&data.unwrap())?;
+    Ok(())
+}
+pub fn get_code(url: &str) -> std::result::Result<String, Box<dyn std::error::Error>> {
+    let code = reqwest::blocking::get(url)?.text()?;
+    Ok(code)
+}
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_download() {
+        let url = "https://bafybeihkxyrc4wqszt2xzbmzrvn7eqjm2oybhspyx56anlytjckg7jgbvy.ipfs.nftstorage.link/0821.json";
+        let _ = download(url, "./test.json");
+        let file = Path::new("./test.json");
+        assert!(file.is_file());
+    }
 }
