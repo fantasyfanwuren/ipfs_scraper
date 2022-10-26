@@ -10,9 +10,12 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
     //解析源码
     let file_names = ipfs_scraper::analysis(&code);
+    // println!("{:?}", file_names);
 
     // 创建文件夹(文件名选取链接的10-20之间的字符,这是哈希值的一部分)
-    let dir_path = ipfs_scraper::make_dir(&url[10..20])?;
+    let len = url.len();
+    let dir_path = ipfs_scraper::make_dir(&url[len - 10..])?;
+    //println!("{:?}", dir_path);
 
     // 创建原子引用及互斥锁
     // index 用于流程控制,没开启一个线程,则index加1

@@ -53,6 +53,7 @@ pub fn make_dir(hash: &str) -> Result<PathBuf, io::Error> {
     let dir = std::env::current_dir().unwrap();
     let dir = dir.join(hash);
     let dir_path = Path::new(&dir);
+    println!("{:?}", dir_path);
     if dir.is_dir() {
         fs::remove_dir_all(dir_path)?;
     }
