@@ -12,10 +12,16 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let file_names = ipfs_scraper::analysis(&code);
     // println!("{:?}", file_names);
 
-    // 创建文件夹(文件名选取链接的10-20之间的字符,这是哈希值的一部分)
-    let len = url.len();
-    let dir_path = ipfs_scraper::make_dir(&url[len - 10..])?;
-    //println!("{:?}", dir_path);
+    // 创建文件夹(提取哈希值)
+    let dir_vec: Vec<&str> = url.split("/").collect();
+    let mut dir_path = dir_vec[0];
+    for d in dir_vec {
+        if d.len() > dir_path.len() {
+            dir_path = d;
+        }
+    }
+    let dir_path = ipfs_scraper::make_dir(&dir_path)?;
+    println!("{:?}", dir_path);
 
     // 创建原子引用及互斥锁
     // index 用于流程控制,没开启一个线程,则index加1
@@ -44,7 +50,8 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
                     break 'a;
                 }
                 // 得到 下载链接 和 文件地址
-                let download_link = format!("{}{}", link, file_names[*num1]);
+                let division = if link.ends_with("/") { "" } else { "/" };
+                let download_link = format!("{}{}{}", link, division, file_names[*num1]);
                 let download_file_path =
                     format!("{}/{}", dir_path.to_str().unwrap(), file_names[*num1]);
                 *num1 += 1;
@@ -57,11 +64,13 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
                 //std::thread::sleep(std::time::Duration::from_millis(100));
                 'b: loop {
                     match ipfs_scraper::download(&download_link, &download_file_path) {
-                        Ok(_) => break 'b,
-                        Err(_) => continue 'b,
+                        Ok(_) => {
+                            println!("线程{i}:{download_file_path}下载完成");
+                            break 'b;
+                        }
+                        Err(_) => (),
                     }
                 }
-                println!("线程{i}:{download_file_path}下载完成");
             }
         });
         handles.push(handle);

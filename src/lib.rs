@@ -62,6 +62,7 @@ pub fn make_dir(hash: &str) -> Result<PathBuf, io::Error> {
     Ok(dir)
 }
 pub fn download(url: &str, file_path: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    println!("{url}");
     let body = reqwest::blocking::get(url)?.bytes()?;
     let mut file = match std::fs::File::create(file_path) {
         Err(why) => panic!("couldn't create {}", why),
@@ -81,9 +82,9 @@ mod test {
     use super::*;
     #[test]
     fn test_download() {
-        let url = "https://bafybeihkxyrc4wqszt2xzbmzrvn7eqjm2oybhspyx56anlytjckg7jgbvy.ipfs.nftstorage.link/0821.json";
-        let _ = download(url, "./test.json");
-        let file = Path::new("./test.json");
+        let url = "https://ipfs.io/ipfs/bafybeiabzw76fnrb5ca56zz5xtsybcgj4hx2v66a4whuvwjxaitmgprndq/7520.png";
+        let _ = download(url, "./7520.png");
+        let file = Path::new("./7520.png");
         assert!(file.is_file());
     }
 }
