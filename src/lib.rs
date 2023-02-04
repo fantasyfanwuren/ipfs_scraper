@@ -10,20 +10,21 @@ use std::path::{Path, PathBuf};
 ///
 pub fn get_input() -> Result<(String, i32), Box<dyn std::error::Error>> {
     // 首先获取用户输入的网址
-    println!("");
-    println!("");
-    println!("请关留守儿童和孤寡老人,如果您有机会遇到他们,请务必善待他们.");
-    println!("作者QQ:756423901");
-    println!("");
-    println!("");
+    println!("***************************************************************");
+    println!("*鸣谢:Playthings by JIA 玩物之佳(WX)对本开源项目的<创始性>捐赠*");
+    println!("************鸣谢:徐龙先生对本开源项目的<升级性>捐赠!***********");
+    println!("**请关留守儿童和孤寡老人,如果您有机会遇到他们,请务必善待他们.**");
+    println!("***********************作者QQ:756423901************************");
+    println!("***************************************************************");
+
     // 获取根地址
-    println!("请输入IPFS根地址:");
+    println!("请输入IPFS根哈希:");
     let mut url = String::new();
     std::io::stdin().read_line(&mut url)?;
     // 获取线程数
     let thread_num: i32 = loop {
         let mut thread_num = String::new();
-        println!("请设置下载线程数:");
+        println!("请设置下载线程数:(推荐50-500个线程同步下载)");
         std::io::stdin().read_line(&mut thread_num)?;
         match thread_num.trim().parse() {
             Ok(num) => break num,

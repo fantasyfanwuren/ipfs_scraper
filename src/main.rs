@@ -3,7 +3,8 @@ use std::sync::{Arc, Mutex};
 fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     // 首先获取用户输入的网址以及线程数
     let (url, thread_num) = ipfs_scraper::get_input()?;
-    let url = url.trim().to_string();
+    let url_hash = url.trim().to_string();
+    let url = format!("https://ipfs.io/ipfs/{}/", &url_hash);
 
     // 根据网址获取网页源码
     let code = ipfs_scraper::get_code(&url)?;
@@ -12,15 +13,8 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let file_names = ipfs_scraper::analysis(&code);
     // println!("{:?}", file_names);
 
-    // 创建文件夹(提取哈希值)
-    let dir_vec: Vec<&str> = url.split("/").collect();
-    let mut dir_path = dir_vec[0];
-    for d in dir_vec {
-        if d.len() > dir_path.len() {
-            dir_path = d;
-        }
-    }
-    let dir_path = ipfs_scraper::make_dir(&dir_path)?;
+    // 创建文件夹(哈希值)
+    let dir_path = ipfs_scraper::make_dir(&url_hash)?;
     println!("{:?}", dir_path);
 
     // 创建原子引用及互斥锁
